@@ -3,8 +3,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AnimationManager = {}
-
 local cache = {}
+
+AnimationManager.Animations = {}
 AnimationManager.PlayerCache = {}
 
 local anims = ReplicatedStorage.Assets:GetDescendants()
@@ -21,9 +22,23 @@ function AnimationManager.Init()
 		end
 	end
 
+	for _, animation in anims do
+		if animation:IsA("Animation") then
+			AnimationManager.Animations[animation.Name] = animation
+		end
+	end
+
 	ContentProvider:PreloadAsync(cache)
 	print(`{#cache} Animations have been loaded.`)
+
 	AnimationManager.PlayerCache[char] = {}
+
+	task.spawn(function()
+		while true do
+			task.wait(0.5)
+			print(AnimationManager.PlayerCache[char])
+		end
+	end)
 end
 
 function AnimationManager.Play(animInstance: Animation, looped: boolean?)

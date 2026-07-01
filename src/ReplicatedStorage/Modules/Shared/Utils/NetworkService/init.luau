@@ -1,18 +1,18 @@
 local NetworkService = {}
-NetworkService.Cache = {}
+local cache = {}
 
 function NetworkService.Init()
 	local Events = script:GetChildren()
 
 	for _, event in Events do
-		NetworkService.Cache[event.Name] = event
+		cache[event.Name] = event
 	end
 end
 
 function NetworkService.GetEvent(eventName: string)
-	assert(NetworkService.Cache[eventName], `{eventName}, does not exist.`)
+	assert(cache[eventName], `{eventName}, does not exist.`)
 
-	return NetworkService.Cache[eventName]
+	return cache[eventName]
 end
 
 return NetworkService

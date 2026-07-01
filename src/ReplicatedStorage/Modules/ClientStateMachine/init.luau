@@ -1,25 +1,27 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local AnimationManager = require(script.Parent.AnimationManager)
 
 local NetworkService = require(ReplicatedStorage.Modules.Shared.Utils.NetworkService)
 local ActionState: RemoteEvent = NetworkService.GetEvent("ActionState")
+local DataFetch: RemoteFunction = NetworkService.GetEvent("DataFetch")
 
 local plr: Player = Players.LocalPlayer
 local char = plr.Character or plr.CharacterAdded:Wait()
 local hum: Humanoid = char:FindFirstChildOfClass("Humanoid")
 
-local currentState
+local currentState, plrData
+-- local isEquipped = false
 
 local ClientStateMachine = {}
-local animCache = {}
+local animCache = AnimationManager.Animations
 
 local States = {
 	["Idle"] = function()
 		-- can transition?
-
-		if currentState == "Walk" then
-			AnimationManager.Stop("Walk")
+		if currentState then
+			AnimationManager.Stop(currentState)
 		end
 
 		currentState = "Idle"
@@ -30,8 +32,8 @@ local States = {
 
 	["Walk"] = function()
 		-- can transition?
-		if currentState == "Idle" then
-			AnimationManager.Stop("Idle")
+		if currentState then
+			AnimationManager.Stop(currentState)
 		end
 
 		currentState = "Walk"
@@ -42,12 +44,11 @@ local States = {
 }
 
 function ClientStateMachine.Init()
-	for _, anim in ReplicatedStorage.Assets.Animations:GetChildren() do
-		animCache[anim.Name] = anim
-	end
-
 	task.spawn(function()
 		States.Idle()
+
+		plrData = DataFetch:InvokeServer()
+		assert(plrData, `DataFetch, recieved {plrData}.`)
 	end)
 
 	hum:GetPropertyChangedSignal("MoveDirection"):Connect(function()
@@ -59,6 +60,15 @@ function ClientStateMachine.Init()
 			if currentState ~= "Idle" then
 				States.Idle()
 			end
+		end
+	end)
+
+	UserInputService.InputBegan:Connect(function(input, gpe)
+		if gpe then
+			return
+		end
+
+		if input.KeyCode == Enum.KeyCode.E then
 		end
 	end)
 end
