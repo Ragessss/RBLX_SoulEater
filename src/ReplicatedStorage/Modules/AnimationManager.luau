@@ -10,12 +10,15 @@ AnimationManager.PlayerCache = {}
 
 local anims = ReplicatedStorage.Assets:GetDescendants()
 
-local plr: Player = Players.LocalPlayer
-local char = plr.Character or plr.CharacterAdded:Wait()
-local hum: Humanoid = char:FindFirstChildOfClass("Humanoid")
-local animator = hum:FindFirstChild("Animator")
+local plr, char, hum, animator
 
 function AnimationManager.Init()
+	task.wait(1)
+	plr = Players.LocalPlayer
+	char = plr.Character or plr.CharacterAdded:Wait()
+	hum = char:FindFirstChildOfClass("Humanoid")
+	animator = hum:WaitForChild("Animator")
+
 	for _, animation in anims do
 		if animation:IsA("Animation") then
 			table.insert(cache, animation)
@@ -33,12 +36,12 @@ function AnimationManager.Init()
 
 	AnimationManager.PlayerCache[char] = {}
 
-	task.spawn(function()
-		while true do
-			task.wait(0.5)
-			print(AnimationManager.PlayerCache[char])
-		end
-	end)
+	-- task.spawn(function()
+	-- 	while true do
+	-- 		task.wait(0.5)
+	-- 		print(AnimationManager.PlayerCache[char])
+	-- 	end
+	-- end)
 end
 
 function AnimationManager.Play(animInstance: Animation, looped: boolean?)

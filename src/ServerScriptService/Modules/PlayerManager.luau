@@ -14,8 +14,23 @@ function PlayerManager.Init()
 		plr = p
 
 		PlayerManager.Data[p.UserId] = {
-			Weapon = "Scythe",
+			Weapon = "wpn_mle_scythe",
+			GachaRolls = 5,
 		}
+
+		p.CharacterAdded:Connect(function(c)
+			for _, part in c:GetDescendants() do
+				if part:IsA("BasePart") then
+					part.CollisionGroup = "Player"
+				end
+			end
+
+			-- c.DescendantAdded:Connect(function(part)
+			-- 	if part:IsA("BasePart") then
+			-- 		part.CollisionGroup = "Player"
+			-- 	end
+			-- end)
+		end)
 	end)
 end
 

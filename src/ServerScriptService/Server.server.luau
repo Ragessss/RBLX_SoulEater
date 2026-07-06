@@ -9,3 +9,9 @@ PlayerManager.Init()
 
 local ServerStateMachine = require(ServerScriptService.Modules.ServerStateMachine)
 ServerStateMachine.Init()
+
+local WeaponManager = require(ServerScriptService.Modules.WeaponManager)
+WeaponManager.Init()
+
+local GachaManager = require(ServerScriptService.Modules.GachaManager)
+GachaManager.Init()
