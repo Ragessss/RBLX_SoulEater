@@ -1,6 +1,18 @@
+-- one tiny bug, when starting equipped, then going into the gacha,
+-- it kinda like bugs out for the outside and next time when going to equip it actually unequips.
+
+-- this CAN also be fixed by just making it so that it checks for the equip state, and adds or doesn't add
+-- the npc depending on that, to keep it clean and following the state of the player correctly.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local PlayerManager = require(script.Parent.PlayerManager)
 local WeaponManager = require(script.Parent.WeaponManager)
+
+local NetworkService = require(ReplicatedStorage.Modules.Shared.Utils.NetworkService)
+local WeaponChange: BindableFunction = NetworkService.GetEvent("WeaponChange")
+local SoundEvent: UnreliableRemoteEvent = NetworkService.GetEvent("SoundEvent")
+
 local GachaManager = {}
 
 local plr
@@ -43,17 +55,16 @@ local function Roll()
 
 	rollsLabel.Text = `{PlayerManager.Data[plr.UserId].GachaRolls} ROLL/S LEFT`
 
-	print("Rolling")
 	rolling = true
 
 	task.spawn(function()
 		repeat
 			for _, weapon in WeaponManager.Data do
-				print(weapon.Name)
 				task.wait(0.05)
 				if not rolling then
 					return
 				end
+				SoundEvent:FireClient(plr, "RollSFX")
 				weaponLabel.Text = weapon.Name
 			end
 		until not rolling
@@ -71,7 +82,7 @@ local function Roll()
 			weaponLabel.TextColor3 = weapon.Color
 			stroke.Color = weapon.Color
 
-			print(`{weapon.Name}, won!`)
+			SoundEvent:FireClient(plr, "RolledSFX")
 			return weapon
 		end
 	end
@@ -111,13 +122,20 @@ function GachaManager.Init()
 		rollsLabel.Text = `{PlayerManager.Data[plr.UserId].GachaRolls} ROLL/S LEFT`
 
 		local character = p.Character
+		local charModel = worldModel:FindFirstChild("PlayerModel")
 
-		character.Archivable = true
-		local charModel = character:Clone()
-		character.Archivable = false
+		WeaponManager.EquipState(true)
 
-		charModel.Parent = worldModel
-		charModel:SetPrimaryPartCFrame(CFrame.new(0, 0, 0))
+		if not charModel then
+			character.Archivable = true
+			charModel = character:Clone()
+			character.Archivable = false
+
+			charModel.Name = "PlayerModel"
+
+			charModel.Parent = worldModel
+			charModel:SetPrimaryPartCFrame(CFrame.new(0, 0, 0))
+		end
 
 		frame.Visible = true
 
@@ -130,7 +148,6 @@ function GachaManager.Init()
 		end)
 
 		CloseBtn.MouseButton1Click:Connect(function()
-			charModel:Destroy()
 			frame.Visible = false
 		end)
 
@@ -138,17 +155,36 @@ function GachaManager.Init()
 			if not debounce then
 				debounce = true
 				local weapon = Roll()
-				debounce = false
-				print(weapon)
 
 				if weapon then
 					PlayerManager.Data[plr.UserId].Weapon = weapon.ID
+				else
+					return
 				end
+
+				WeaponChange:Invoke()
+
+				worldModel.PlayerModel:Destroy()
+
+				character.Archivable = true
+				local charModel = character:Clone()
+				character.Archivable = false
+
+				charModel.Name = "PlayerModel"
+
+				charModel.Parent = worldModel
+				charModel:SetPrimaryPartCFrame(CFrame.new(0, 0, 0))
+
+				debounce = false
+
+				local charHRP = charModel:FindFirstChild("HumanoidRootPart")
+				local info = TweenInfo.new(8, Enum.EasingStyle.Linear, Enum.EasingDirection.In, -1, false)
+				local goals = { Orientation = Vector3.new(0, 360, 0) }
+				local tween = TweenService:Create(charHRP, info, goals)
+				tween:Play()
 			end
 		end)
 	end)
 end
 
 return GachaManager
-
--- it currently adds the weapon table, not the id fix ts.

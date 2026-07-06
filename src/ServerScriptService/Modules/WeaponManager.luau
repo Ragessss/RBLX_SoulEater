@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerManager = require(script.Parent.PlayerManager)
 local NetworkService = require(ReplicatedStorage.Modules.Shared.Utils.NetworkService)
 local ActionEvent: RemoteEvent = NetworkService.GetEvent("ActionEvent")
+local WeaponChange: BindableFunction = NetworkService.GetEvent("WeaponChange")
 
 local WeaponManager = {}
 WeaponManager.Data = {
@@ -21,12 +22,13 @@ WeaponManager.Data = {
 		Weight = 50,
 		Color = Color3.fromHSV(0.360731, 0.858824, 1),
 
-		-- Path = ReplicatedStorage.Assets.Weapons.Sword,
+		Path = ReplicatedStorage.Assets.Weapons.Sword,
 		ID = "wpn_mle_sword",
 	},
 }
 
-local char, npc, plr
+local char, plr
+local npcWeld, npc
 
 function WeaponManager.Init()
 	Players.PlayerAdded:Connect(function(p: Player)
@@ -56,10 +58,12 @@ function WeaponManager.Init()
 
 			n.Parent = c
 
-			local npcWeld = WeaponManager.Data[PlayerManager.Data[p.UserId].Weapon].Path.Welds.NPCWeld:Clone()
-			npcWeld.Part0 = c.Head
-			npcWeld.Part1 = n.HumanoidRootPart
-			npcWeld.Parent = c.HumanoidRootPart
+			local nWeld = WeaponManager.Data[PlayerManager.Data[p.UserId].Weapon].Path.Welds.NPCWeld:Clone()
+			nWeld.Part0 = c.Head
+			nWeld.Part1 = n.HumanoidRootPart
+			nWeld.Parent = c.Head
+
+			npcWeld = nWeld
 		end)
 	end)
 end
@@ -76,35 +80,75 @@ local function npcVisible(visible: boolean)
 	end
 end
 
-function WeaponManager.Equip()
-	npcVisible(false)
+function WeaponManager.EquipState(isEquipped)
+	if isEquipped then
+		if not char["Right Arm"]:FindFirstChild("Equip") then
+			return
+		end
 
-	local wpnWeld = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.Welds.Equip:Clone()
-	wpnWeld.Parent = char["Right Arm"]
+		npcVisible(true)
 
-	local wpn = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.Scythe:Clone()
-	wpnWeld.Part0 = char["Right Arm"]
-	wpnWeld.Part1 = wpn
+		local wpnWeld = char["Right Arm"].Equip
+		wpnWeld:Destroy()
 
-	wpn.Parent = char
-end
+		local wpn = char[WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Name]
+		wpn:Destroy()
+	else
+		npcVisible(false)
 
-function WeaponManager.UnEquip()
-	npcVisible(true)
+		local wpnWeld = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.Welds.Equip:Clone()
+		wpnWeld.Parent = char["Right Arm"]
 
-	local wpnWeld = char["Right Arm"].Equip
-	wpnWeld:Destroy()
+		local wpn =
+			WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path[WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Name]:Clone()
+		wpnWeld.Part0 = char["Right Arm"]
+		wpnWeld.Part1 = wpn
 
-	local wpn = char.Scythe
-	wpn:Destroy()
+		wpn.Parent = char
+	end
 end
 
 ActionEvent.OnServerEvent:Connect(function(p: Player, equipped: boolean?)
-	if equipped then
-		WeaponManager.UnEquip()
-	else
-		WeaponManager.Equip()
-	end
+	WeaponManager.EquipState(equipped)
 end)
+
+WeaponChange.OnInvoke = function()
+	npc:Destroy()
+	npcWeld:Destroy()
+
+	local n = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.NPC:Clone()
+	npc = n
+
+	local humanoid = n:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid.PlatformStand = true
+		humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+	end
+
+	for _, part in n:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = false
+			part.CanCollide = false
+			part.Massless = true
+			part.CollisionGroup = "WeaponNPC"
+		end
+	end
+
+	n.Parent = char
+
+	if WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Name == "Sword" then
+		npcWeld = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.Welds.NPCWeld:Clone()
+		npcWeld.Part0 = char["Left Arm"]
+		npcWeld.Part1 = n.HumanoidRootPart
+		npcWeld.Parent = char["Left Arm"]
+	else
+		npcWeld = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Path.Welds.NPCWeld:Clone()
+		npcWeld.Part0 = char.Head
+		npcWeld.Part1 = n.HumanoidRootPart
+		npcWeld.Parent = char.Head
+	end
+
+	return
+end
 
 return WeaponManager
