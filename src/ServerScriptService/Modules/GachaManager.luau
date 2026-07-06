@@ -6,7 +6,6 @@ local GachaManager = {}
 local plr
 local gachaNPC
 local debounce = false
-local newName, newColor
 
 local function Roll()
 	local plrGui = plr:WaitForChild("PlayerGui")
@@ -102,11 +101,11 @@ function GachaManager.Init()
 
 		local rollingFrame = RollFrame:WaitForChild("Rolling")
 		local weaponLabel = rollingFrame:WaitForChild("WeaponLabel")
-		weaponLabel.Text = newName or WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Name
-		weaponLabel.TextColor3 = newColor or WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Color
+		weaponLabel.Text = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Name
+		weaponLabel.TextColor3 = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Color
 
 		local stroke = rollingFrame:WaitForChild("UIStroke")
-		stroke.Color = newColor or WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Color
+		stroke.Color = WeaponManager.Data[PlayerManager.Data[plr.UserId].Weapon].Color
 
 		local rollsLabel = rollingFrame:WaitForChild("RollsLabel")
 		rollsLabel.Text = `{PlayerManager.Data[plr.UserId].GachaRolls} ROLL/S LEFT`
@@ -143,12 +142,8 @@ function GachaManager.Init()
 				print(weapon)
 
 				if weapon then
-					PlayerManager.Data[plr.UserId].Weapon = weapon
+					PlayerManager.Data[plr.UserId].Weapon = weapon.ID
 				end
-
-				print(PlayerManager.Data[plr.UserId].Weapon.Name)
-				newName = PlayerManager.Data[plr.UserId].Weapon.Name
-				newColor = PlayerManager.Data[plr.UserId].Weapon.Color
 			end
 		end)
 	end)

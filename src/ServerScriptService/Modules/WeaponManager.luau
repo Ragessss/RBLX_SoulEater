@@ -13,6 +13,7 @@ WeaponManager.Data = {
 
 		Color = Color3.fromHSV(0, 0.854902, 1),
 		Path = ReplicatedStorage.Assets.Weapons.Scythe,
+		ID = "wpn_mle_scythe",
 	},
 
 	["wpn_mle_sword"] = {
@@ -21,6 +22,7 @@ WeaponManager.Data = {
 		Color = Color3.fromHSV(0.360731, 0.858824, 1),
 
 		-- Path = ReplicatedStorage.Assets.Weapons.Sword,
+		ID = "wpn_mle_sword",
 	},
 }
 
