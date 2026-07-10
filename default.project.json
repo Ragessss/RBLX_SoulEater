@@ -20,12 +20,6 @@
         "$path": "src/StarterPlayerScripts",
         "$className": "StarterPlayerScripts",
         "$ignoreUnknownInstances": true
-      },
-
-      "StarterCharacterScripts": {
-        "$path": "src/StarterCharacterScripts",
-        "$className": "StarterCharacterScripts",
-        "$ignoreUnknownInstances": true
       }
     }
   }
